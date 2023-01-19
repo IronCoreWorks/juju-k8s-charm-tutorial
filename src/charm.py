@@ -3,7 +3,9 @@
 # See LICENSE file for licensing details.
 #
 # Learn more at: https://juju.is/docs/sdk
+import json
 import logging
+from typing import Any
 
 import ops
 import requests
@@ -12,6 +14,8 @@ from charms.data_platform_libs.v0.data_interfaces import DatabaseRequires
 
 # Log messages can be retrieved using juju debug-log
 logger = logging.getLogger(__name__)
+
+PEER_NAME = "fastapi-peer"
 
 
 class FastAPIDemoCharm(ops.CharmBase):
@@ -33,6 +37,7 @@ class FastAPIDemoCharm(ops.CharmBase):
         framework.observe(self.on.config_changed, self._on_config_changed)
         framework.observe(self.on.collect_unit_status, self._on_collect_status)
 
+<<<<<<< HEAD
     def _on_collect_status(self, event: ops.EventBase):
         port = self.config["server-port"]
         if port == 22:
@@ -55,6 +60,12 @@ class FastAPIDemoCharm(ops.CharmBase):
 
     def _on_config_changed(self, event: ops.EventBase):
         port = self.config["server-port"]  # see charmcraft.yaml
+=======
+        self.framework.observe(self.on.start, self._count)
+
+    def _on_config_changed(self, event):
+        port = self.config["server-port"]  # see config.yaml
+>>>>>>> c806899 (preserve data in peer relation)
         logger.debug("New application port is requested: %s", port)
 
         if port == 22:
@@ -63,6 +74,16 @@ class FastAPIDemoCharm(ops.CharmBase):
             return
 
         self._update_layer_and_restart(None)
+
+    def _count(self, event) -> None:
+        """This function updates a counter for the number of times a K8s pod has been started.
+
+        It retrieves the current count of pod starts from the 'unit_stats' peer relation data,
+        increments the count, and then updates the 'unit_stats' data with the new count.
+        """
+        unit_stats = self.get_peer_data("unit_stats")
+        counter = unit_stats.get("started_counter", 0)
+        self.set_peer_data("unit_stats", {"started_counter": int(counter) + 1})
 
     def _on_database_created(self, event: DatabaseCreatedEvent) -> None:
         """Event is fired when postgres database is created."""
@@ -184,6 +205,22 @@ class FastAPIDemoCharm(ops.CharmBase):
         """Helper for fetching the version from the running workload using the API."""
         resp = requests.get(f"http://localhost:{self.config['server-port']}/version", timeout=10)
         return resp.json()["version"]
+
+    @property
+    def peers(self):
+        """Fetch the peer relation."""
+        return self.model.get_relation(PEER_NAME)
+
+    def set_peer_data(self, key: str, data: Any) -> None:
+        """Put information into the peer data bucket instead of `StoredState`."""
+        self.peers.data[self.app][key] = json.dumps(data)
+
+    def get_peer_data(self, key: str) -> dict[Any, Any]:
+        """Retrieve information from the peer data bucket instead of `StoredState`."""
+        if not self.peers:
+            return {}
+        data = self.peers.data[self.app].get(key, "")
+        return json.loads(data) if data else {}
 
 
 if __name__ == "__main__":  # pragma: nocover
