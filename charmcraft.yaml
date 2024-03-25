@@ -39,6 +39,13 @@ assumes:
   - juju >= 3.1
   - k8s-api
 
+<<<<<<< HEAD
+=======
+peers:
+  fastapi-peer:
+    interface: fastapi_demo_peers
+
+>>>>>>> a46cb4c (Modernisation.)
 requires:
   database:
     interface: postgresql_client
