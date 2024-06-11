@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 #
 # Learn more at: https://juju.is/docs/sdk
@@ -21,7 +21,7 @@ PEER_NAME = "fastapi-peer"
 class FastAPIDemoCharm(ops.CharmBase):
     """Charm the service."""
 
-    def __init__(self, framework):
+    def __init__(self, framework: ops.Framework):
         super().__init__(framework)
         self.pebble_service_name = "fastapi-service"
         self.container = self.unit.get_container("demo-server")  # see 'containers' in metadata.yaml
@@ -39,7 +39,7 @@ class FastAPIDemoCharm(ops.CharmBase):
         # events on custom actions that are run via 'juju run-action'
         self.framework.observe(self.on.get_db_info_action, self._on_get_db_info_action)
 
-    def _on_collect_status(self, event):
+    def _on_collect_status(self, event: ops.EventBase):
         port = self.config["server-port"]
         if port == 22:
             event.add_status(ops.BlockedStatus("Invalid port number, 22 is reserved for SSH"))
@@ -59,7 +59,7 @@ class FastAPIDemoCharm(ops.CharmBase):
         # If nothing is wrong, then the status is active.
         event.add_status(ops.ActiveStatus())
 
-    def _on_config_changed(self, event):
+    def _on_config_changed(self, event: ops.EventBase):
         port = self.config["server-port"]  # see charmcraft.yaml
         logger.debug("New application port is requested: %s", port)
 
@@ -83,6 +83,7 @@ class FastAPIDemoCharm(ops.CharmBase):
         """Event is fired when postgres database is created."""
         self._update_layer_and_restart(None)
 
+<<<<<<< ours
     def _on_get_db_info_action(self, event) -> None:
         """This method is called when "get_db_info" action is called. It shows information about
         database access points by calling the `fetch_postgres_relation_data` method and creates
@@ -111,6 +112,9 @@ class FastAPIDemoCharm(ops.CharmBase):
         event.set_results(output)
 
     def _update_layer_and_restart(self, event) -> None:
+=======
+    def _update_layer_and_restart(self, event: ops.EventBase) -> None:
+>>>>>>> theirs
         """Define and start a workload using the Pebble API.
 
         You'll need to specify the right entrypoint and environment
