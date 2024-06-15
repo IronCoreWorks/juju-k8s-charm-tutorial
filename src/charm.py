@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 #
 # Learn more at: https://juju.is/docs/sdk
@@ -21,7 +21,7 @@ PEER_NAME = "fastapi-peer"
 class FastAPIDemoCharm(ops.CharmBase):
     """Charm the service."""
 
-    def __init__(self, framework):
+    def __init__(self, framework: ops.Framework):
         super().__init__(framework)
         self.pebble_service_name = "fastapi-service"
         self.container = self.unit.get_container(
@@ -38,7 +38,7 @@ class FastAPIDemoCharm(ops.CharmBase):
         framework.observe(self.on.collect_unit_status, self._on_collect_status)
         framework.observe(self.on.start, self._count)
 
-    def _on_collect_status(self, event):
+    def _on_collect_status(self, event: ops.EventBase):
         port = self.config["server-port"]
         if port == 22:
             event.add_status(ops.BlockedStatus("Invalid port number, 22 is reserved for SSH"))
@@ -58,7 +58,7 @@ class FastAPIDemoCharm(ops.CharmBase):
         # If nothing is wrong, then the status is active.
         event.add_status(ops.ActiveStatus())
 
-    def _on_config_changed(self, event):
+    def _on_config_changed(self, event: ops.EventBase):
         port = self.config["server-port"]  # see charmcraft.yaml
         logger.debug("New application port is requested: %s", port)
 
@@ -82,7 +82,7 @@ class FastAPIDemoCharm(ops.CharmBase):
         """Event is fired when postgres database is created."""
         self._update_layer_and_restart(None)
 
-    def _update_layer_and_restart(self, event) -> None:
+    def _update_layer_and_restart(self, event: ops.EventBase) -> None:
         """Define and start a workload using the Pebble API.
 
         You'll need to specify the right entrypoint and environment
